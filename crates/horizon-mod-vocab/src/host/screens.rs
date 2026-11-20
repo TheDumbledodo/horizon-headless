@@ -112,6 +112,34 @@ pub trait ScreensClientHost {
     #[access(ClientSetup)]
     fn sign_editor(&self) -> Option<SignEditView>;
     /// Side: client.
+    /// The open server dialog's button labels, in the order it draws them; None when no
+    /// dialog is open, and while it shows its warning or waits for the server's response.
+    #[access(ClientSetup)]
+    fn dialog_buttons(&self) -> Option<Vec<String>>;
+    /// Side: client.
+    /// Presses the open dialog's button labelled `label` as a click on it does: its action
+    /// runs (a command, a custom click, another dialog) and the dialog closes as it says. A
+    /// command the game asks about first opens that confirmation instead (`command_prompt`).
+    /// False when no dialog is open or none of its buttons has that label.
+    #[access(WorldOnly)]
+    fn press_dialog_button(&mut self, label: &str) -> bool;
+    /// Side: client.
+    /// Replaces the text of the open dialog's text input `key`, as selecting all of it and
+    /// typing does. False when no dialog is open or it has no text input of that key.
+    #[access(WorldOnly)]
+    fn set_dialog_text(&mut self, key: &str, text: &str) -> bool;
+    /// Side: client.
+    /// The command an open confirmation asks about before it is run or suggested
+    /// (`ClientPacketListener.openSendConfirmationWindow`); None when none is open.
+    #[access(ClientSetup)]
+    fn command_prompt(&self) -> Option<String>;
+    /// Side: client.
+    /// Answers the open command confirmation as its first button does (yes: the command is run,
+    /// suggested or copied, as it says) or its second (no: back to what was behind it, a dialog
+    /// included). False when none is open.
+    #[access(WorldOnly)]
+    fn confirm_command_prompt(&mut self, yes: bool) -> bool;
+    /// Side: client.
     /// The mod whose own screen is open, if one is (Escape, or another screen
     /// replacing it, closes it).
     #[access(ClientSetup)]

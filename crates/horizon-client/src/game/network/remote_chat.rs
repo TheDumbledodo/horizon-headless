@@ -484,6 +484,13 @@ impl Game<'_> {
         }
     }
 
+    /// The command the open confirmation asks about.
+    pub(super) fn command_prompt_command(&self) -> Option<String> {
+        self.command_prompt
+            .as_ref()
+            .map(|prompt| prompt.command.clone())
+    }
+
     /// ConfirmScreen.keyPressed, and what its buttons take from the keyboard
     /// (Screen's focus navigation, AbstractButton's Enter and Space).
     pub(super) fn command_prompt_key(&mut self, key: KeyCode) {

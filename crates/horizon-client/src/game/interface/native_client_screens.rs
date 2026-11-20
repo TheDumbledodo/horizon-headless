@@ -52,6 +52,32 @@ impl Game<'_> {
         let _ = self.key_pressed(KeyCode::KeyE, KeyCode::KeyE);
         vehicle || self.screen != Screen::Playing
     }
+    /// The open server dialog's button labels, in drawing order (`ClientHost::dialog_buttons`).
+    pub(in crate::game) fn dialog_buttons(&self) -> Option<Vec<String>> {
+        self.player.as_ref()?;
+        self.dialog_button_labels()
+    }
+    /// Presses the open dialog's button by its label, as a click on it does
+    /// (`ClientHost::press_dialog_button`).
+    pub(in crate::game) fn press_dialog_button(&mut self, label: &str) -> bool {
+        self.player.is_some() && self.dialog_press(label).is_ok()
+    }
+    /// Replaces the text of the open dialog's text input `key` (`ClientHost::set_dialog_text`).
+    pub(in crate::game) fn set_dialog_text(&mut self, key: &str, text: &str) -> bool {
+        self.player.is_some() && self.dialog_set_text(key, text)
+    }
+    /// The command an open confirmation asks about (`ClientHost::command_prompt`).
+    pub(in crate::game) fn command_prompt(&self) -> Option<String> {
+        self.command_prompt_command()
+    }
+    /// Answers the open command confirmation (`ClientHost::confirm_command_prompt`).
+    pub(in crate::game) fn confirm_command_prompt(&mut self, yes: bool) -> bool {
+        if self.command_prompt.is_none() {
+            return false;
+        }
+        self.answer_command_prompt(yes);
+        true
+    }
     /// `AbstractSignEditScreen`'s sign: its block position and the side the
     /// editor is on. None when no sign editor is open, or outside a world.
     pub(in crate::game) fn sign_editor(&self) -> Option<SignEditView> {

@@ -973,6 +973,64 @@ impl Game<'_> {
         self.run_dialog_action(click, after)
     }
 
+    /// Presses the open dialog's button labelled `label`, as the click on it would (a game with
+    /// no window has no pixels to click): its action runs and the dialog closes as it says.
+    pub(super) fn dialog_press(&mut self, label: &str) -> Result<String> {
+        if self.dialogs.warning || self.dialogs.waiting.is_some() {
+            return Err("the dialog is showing its warning or waiting for a response".into());
+        }
+        let Some(open) = self.dialogs.open.as_mut() else {
+            return Err("no dialog is open".into());
+        };
+        Self::dialog_values(open);
+        let d = &open.dialog;
+        let Some(index) = d.buttons().iter().position(|b| b.label.plain() == label) else {
+            return Err(format!("no button {label:?} in the open dialog").into());
+        };
+        let click = d.buttons()[index]
+            .action
+            .as_ref()
+            .and_then(|a| a.click(&d.inputs, &open.values));
+        let after = d.after_action;
+        let pressed = d.buttons()[index].label.plain();
+        self.run_dialog_action(click, after)?;
+        Ok(pressed)
+    }
+
+    /// The open dialog's button labels; None with no dialog, or while it shows its warning or
+    /// waits for a response.
+    pub(super) fn dialog_button_labels(&self) -> Option<Vec<String>> {
+        if self.dialogs.warning || self.dialogs.waiting.is_some() {
+            return None;
+        }
+        let open = self.dialogs.open.as_ref()?;
+        Some(
+            open.dialog
+                .buttons()
+                .iter()
+                .map(|b| b.label.plain())
+                .collect(),
+        )
+    }
+
+    /// Replaces the text of the open dialog's text input `key`, as Ctrl+A then typing does.
+    pub(super) fn dialog_set_text(&mut self, key: &str, text: &str) -> bool {
+        let Some(open) = self.dialogs.open.as_mut() else {
+            return false;
+        };
+        let Some(index) = open.dialog.inputs.iter().position(|input| input.key == key) else {
+            return false;
+        };
+        let font = &self.gui.atlas.font;
+        let Some(Some(field)) = open.fields.get_mut(index) else {
+            return false;
+        };
+        field.key(font, KeyCode::KeyA, true, false);
+        field.insert_text(font, text);
+        open.focus = Some(index);
+        true
+    }
+
     /// The mouse wheel over a dialog: a cycle button under it takes the
     /// step, else the body scrolls 10 a step.
     pub(super) fn dialog_scroll(&mut self, delta: f32) {
