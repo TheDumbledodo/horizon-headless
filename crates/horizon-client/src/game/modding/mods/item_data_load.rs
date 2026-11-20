@@ -15,6 +15,9 @@ pub(in super::super) enum OwningLoad {
 pub(in super::super) struct LoadRole {
     pub(in super::super) execution: ExecutionRole,
     pub(in super::super) owning: OwningLoad,
+    /// A player with no window (`--headless`): it loads no pixels, models or face visibility,
+    /// which only the renderer draws, as a server does not.
+    headless: bool,
 }
 
 impl LoadRole {
@@ -22,7 +25,14 @@ impl LoadRole {
         Self {
             execution,
             owning: OwningLoad::Startup,
+            headless: false,
         }
+    }
+    pub(in super::super) fn headless(self, headless: bool) -> Self {
+        Self { headless, ..self }
+    }
+    pub(in super::super) fn draws_nothing(&self) -> bool {
+        !self.execution.is_client() || self.headless
     }
 }
 
@@ -31,6 +41,7 @@ impl From<ExecutionRole> for LoadRole {
         Self {
             execution,
             owning: OwningLoad::Later,
+            headless: false,
         }
     }
 }

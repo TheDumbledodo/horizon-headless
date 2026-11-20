@@ -169,7 +169,7 @@ pub(super) fn load_core(
 ) -> std::result::Result<std::result::Result<CoreTables, String>, String> {
     let role = load_role.execution;
     let root = resources.prepared();
-    let headless = !role.is_client();
+    let headless = load_role.draws_nothing();
     // The model library reads every file under `assets/` and needs no
     // block registry, so it is parsed beside `Assets::load` rather than
     // after it. It used to sit inside `reload` behind both the registry
@@ -551,9 +551,8 @@ pub(super) fn load_resources(
     publish: &mut dyn FnMut(UiResources, &std::path::Path),
 ) -> Result<Loaded> {
     let load_role: mods::LoadRole = role.into();
-    let role = load_role.execution;
     let mut root = resolved.prepared().to_path_buf();
-    let headless = !role.is_client();
+    let headless = load_role.draws_nothing();
     let (runtime_sprites, texture_atlases) = if headless {
         (Vec::new(), Vec::new())
     } else {
